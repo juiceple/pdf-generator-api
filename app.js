@@ -2,7 +2,7 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 
 const app = express();
-app.use(express.json({ limit: '10mb' })); // 요청 본문 크기 제한을 10MB로 설정
+app.use(express.json({ limit: '10mb' }));
 
 app.post('/generate-pdf', async (req, res) => {
   const { html, css } = req.body;
@@ -17,8 +17,8 @@ app.post('/generate-pdf', async (req, res) => {
     });
     const page = await browser.newPage();
 
-    // Set the HTML content
-    await page.setContent(html);
+    // Set the HTML content with network idle wait
+    await page.setContent(html, { waitUntil: 'networkidle0' });
 
     // If CSS is provided, add it to the page
     if (css) {
@@ -30,7 +30,7 @@ app.post('/generate-pdf', async (req, res) => {
     }
 
     // Generate PDF
-    const pdfBuffer = await page.pdf({ format: 'A4' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
 
     await browser.close();
 
@@ -45,6 +45,9 @@ app.post('/generate-pdf', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// Increase server timeout to 1 minute
+server.timeout = 60000;
