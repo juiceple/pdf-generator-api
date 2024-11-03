@@ -13,14 +13,13 @@ app.post('/generate-pdf', async (req, res) => {
 
   try {
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: true
     });
-    const page = await browser.newPage();
 
-    // Set the HTML content with network idle wait
+    const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    // If CSS is provided, add it to the page
     if (css) {
       await page.evaluate((css) => {
         const style = document.createElement('style');
@@ -29,18 +28,15 @@ app.post('/generate-pdf', async (req, res) => {
       }, css);
     }
 
-    // Generate PDF
     const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
-
     await browser.close();
 
-    // Send the PDF as a response
     res.contentType('application/pdf');
     res.send(pdfBuffer);
 
   } catch (error) {
     console.error('Error generating PDF:', error);
-    res.status(500).send('Error generating PDF');
+    res.status(500).json({ message: 'Error generating PDF', details: error.toString() });
   }
 });
 
@@ -49,5 +45,4 @@ const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// Increase server timeout to 1 minute
 server.timeout = 60000;
