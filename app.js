@@ -2,7 +2,7 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // 요청 본문 크기 제한을 10MB로 설정
 
 app.post('/generate-pdf', async (req, res) => {
   const { html, css } = req.body;
