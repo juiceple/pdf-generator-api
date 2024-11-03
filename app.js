@@ -1,7 +1,10 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
+const cors = require('cors');
 const app = express();
 
+// CORS 설정 (필요시 특정 도메인만 허용 가능)
+app.use(cors({ origin: 'https://cvmate.site' })); // 'https://cvmate.site'의 요청만 허용
 // JSON 파싱 설정
 app.use(express.json({ limit: '10mb' }));
 
@@ -17,8 +20,8 @@ const getPuppeteerOptions = () => ({
     '--disable-gpu',
     '--single-process'
   ],
-  headless: 'new',  // 새로운 headless 모드 사용
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null // Render의 Chrome 경로 사용
+  headless: 'new',
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath() // Puppeteer의 경로 사용
 });
 
 app.post('/generate-pdf', async (req, res) => {
@@ -26,11 +29,16 @@ app.post('/generate-pdf', async (req, res) => {
   let browser = null;
   let page = null;
 
+  // HTML 데이터가 없는 경우 오류 응답
   if (!html) {
     return res.status(400).json({ error: 'HTML 내용이 필요합니다' });
   }
 
   try {
+    // HTML, CSS 데이터가 제대로 전달되는지 확인
+    console.log("Received HTML:", html);
+    console.log("Received CSS:", css);
+
     // Puppeteer 브라우저 실행
     browser = await puppeteer.launch(getPuppeteerOptions());
     page = await browser.newPage();
