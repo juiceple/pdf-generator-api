@@ -21,8 +21,9 @@ const getPuppeteerOptions = () => ({
     '--single-process'
   ],
   headless: 'new',
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath() // Puppeteer의 경로 사용
+  executablePath: puppeteer.executablePath() // Puppeteer가 다운로드한 Chromium을 사용
 });
+
 
 app.post('/generate-pdf', async (req, res) => {
   const { html, css } = req.body;
